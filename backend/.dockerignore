@@ -1,0 +1,11 @@
+# Never bake secrets or local dev config into the image.
+# Production config is injected at runtime via docker-compose environment:.
+.env
+.secrets.toml
+
+# Development / tooling artefacts
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+*.pyc

@@ -1,0 +1,54 @@
+# Local development and test environments.
+# Deployment targets (docker, ci, production) live in deploy.toml.
+# Application config — read by dynaconf (envvar_prefix = "APP").
+# For Make / psql tooling use PG* vars in .env instead (different namespace, no overlap).
+
+[default]
+app_name = "fullstack-template"
+log_level = "INFO"
+debug = false
+cors_allow_derived_origins = false
+pg_host = "127.0.0.1"
+pg_port = 5432
+pg_db = "appdb"
+# pg_user = ""  # required — no default; set here or via APP_PG_USER env var
+
+# cors_origins is derived automatically from VITE_PORT / FRONTEND_HOST_PORT
+# when cors_allow_derived_origins = true. Otherwise set it explicitly, e.g.:
+# cors_origins = ["http://localhost:5173", "http://localhost:5174"]
+
+[dev_ak_mac]
+log_level = "DEBUG"
+debug = true
+# Derive CORS origins from VITE_PORT / FRONTEND_HOST_PORT in local dev.
+cors_allow_derived_origins = true
+# Cloud SQL proxy runs on a non-standard port in local dev to avoid conflicts.
+pg_port = 5435
+pg_db = "cities"
+pg_user = "cities_ro"
+
+[dev_ak_linux]
+log_level = "DEBUG"
+debug = true
+cors_allow_derived_origins = true
+pg_port = 5435
+pg_db = "cities"
+pg_user = "cities_ro"
+
+[dev_js]
+log_level = "DEBUG"
+debug = true
+cors_allow_derived_origins = true
+pg_port = 5435
+pg_db = "cities"
+pg_user = "cities_ro"
+
+[testing]
+log_level = "WARNING"
+debug = false
+# Derive origins in the test environment so tests that import app.main work.
+cors_allow_derived_origins = true
+# DB credentials are not set here — the test suite mocks the DB session via
+# dependency_overrides and never opens a real connection.
+# If live-DB integration tests are added, supply credentials via env vars:
+#   APP_PG_USER, APP_PG_DB, APP_PG_PASSWORD (or add them to .secrets.toml [testing])

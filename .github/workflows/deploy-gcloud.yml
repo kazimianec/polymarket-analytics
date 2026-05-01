@@ -1,0 +1,82 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - deploy-gcloud
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  AR_REPO: ${{ vars.GCP_AR_REPO }}
+  IMAGE_BASE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPO }}
+  BACKEND_SERVICE: fullstack-backend
+  FRONTEND_SERVICE: fullstack-frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # required for WIF
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push backend image
+        run: |
+          docker build -t ${{ env.IMAGE_BASE }}/backend:${{ github.sha }} backend/
+          docker push ${{ env.IMAGE_BASE }}/backend:${{ github.sha }}
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f frontend/Dockerfile.prod -t ${{ env.IMAGE_BASE }}/frontend:${{ github.sha }} frontend/
+          docker push ${{ env.IMAGE_BASE }}/frontend:${{ github.sha }}
+
+      - name: Deploy backend to Cloud Run
+        id: deploy-backend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.BACKEND_SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_BASE }}/backend:${{ github.sha }}
+          flags: --allow-unauthenticated --port=8000 --add-cloudsql-instances=${{ secrets.CLOUDSQL_INSTANCE }}
+          env_vars: |
+            ENV_FOR_DYNACONF=production
+            APP_CORS_ORIGINS=[]
+          secrets: |
+            APP_PG_PASSWORD=pg-password:latest
+
+      - name: Deploy frontend to Cloud Run
+        id: deploy-frontend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.FRONTEND_SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_BASE }}/frontend:${{ github.sha }}
+          flags: --allow-unauthenticated
+          env_vars: |
+            BACKEND_URL=${{ steps.deploy-backend.outputs.url }}
+
+      - name: Update backend CORS
+        run: |
+          FRONTEND_URL="${{ steps.deploy-frontend.outputs.url }}"
+          gcloud run services update ${{ env.BACKEND_SERVICE }} \
+            --region=${{ env.REGION }} \
+            --update-env-vars="APP_CORS_ORIGINS=[\"${FRONTEND_URL}\"]"
+
+      - name: Summary
+        run: |
+          echo "### Deployed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend:** ${{ steps.deploy-frontend.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend:** ${{ steps.deploy-backend.outputs.url }}" >> $GITHUB_STEP_SUMMARY

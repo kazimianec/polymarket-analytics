@@ -1,0 +1,29 @@
+# Deployment target environments.
+# Local development environments live in settings.toml.
+# Select a target by setting DEPLOY_ENV in .env (used by docker-compose).
+
+[docker]
+log_level = "WARNING"
+debug = false
+# cors_origins set via APP_CORS_ORIGINS env var in docker-compose.yml
+# host.docker.internal resolves on Docker Desktop (macOS, Windows, Linux with DD) and WSL2+DD.
+# For Linux without Docker Desktop add extra_hosts in docker-compose.yml or set APP_PG_HOST.
+pg_host = "host.docker.internal"
+pg_port = 5435      # must match the host-side postgres port (same as local dev)
+pg_db = "cities"    # must match the local dev database
+pg_user = "cities_ro"
+
+[ci]
+log_level = "WARNING"
+debug = false
+cors_allow_derived_origins = true
+pg_host = "postgres"    # GitHub Actions service container name
+pg_user = "app"         # matches POSTGRES_USER in the CI service definition
+
+[production]
+log_level = "WARNING"
+debug = false
+# cors_origins = ["https://my-project.example.com"]
+pg_host = "/cloudsql/shared-infra-prod-490809:europe-west1:main-postgres-dev"  # Cloud SQL Auth Proxy Unix socket
+pg_db = "cities"
+pg_user = "cities_ro"   # set here or via APP_PG_USER env var

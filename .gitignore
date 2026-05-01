@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Secrets / dynaconf
+.secrets.*
+secrets.*
+
+# Node / React / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+frontend/.playwright/
+frontend/playwright-report/
+frontend/test-results/
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+*.env.local
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+
+# Claude Code / OMC
+.omc/
+.playwright-mcp/
+
