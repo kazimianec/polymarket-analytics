@@ -9,6 +9,7 @@ from app.database import dispose_engine
 from app.routers.domain.health import router as health_router
 from app.routers.domain.markets import router as markets_router
 from app.routers.domain.stats import router as stats_router
+from app.routers.domain.categories import router as categories_router
 
 
 @asynccontextmanager
@@ -31,3 +32,4 @@ app.add_middleware(
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(markets_router, prefix="/api/v1")
 app.include_router(stats_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1")
