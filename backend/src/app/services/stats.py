@@ -51,19 +51,21 @@ async def get_stats_overview(client: PolymarketClient) -> StatsOverviewDict:
         volume = float(market.get("volume", 0) or 0)
         total_volume += volume
 
-        # Extract yes/no prices from outcomePrices
-        outcome_prices = market.get("outcomePrices", {})
+        # Extract yes/no prices from outcomePrices (double-encoded list: ["0.92", "0.08"])
+        outcome_prices = market.get("outcomePrices", [])
         if isinstance(outcome_prices, str):
-            # Handle double-encoded JSON string
             import json
 
             try:
                 outcome_prices = json.loads(outcome_prices)
             except (json.JSONDecodeError, TypeError):
-                outcome_prices = {}
+                outcome_prices = []
 
-        yes_price = float(outcome_prices.get("Yes", 0.5) or 0.5)
-        no_price = float(outcome_prices.get("No", 0.5) or 0.5)
+        if isinstance(outcome_prices, list) and len(outcome_prices) >= 2:
+            yes_price = float(outcome_prices[0] or 0.5)
+            no_price = float(outcome_prices[1] or 0.5)
+        else:
+            yes_price, no_price = 0.5, 0.5
 
         trending_items.append(
             TrendingMarketItem(
@@ -75,9 +77,9 @@ async def get_stats_overview(client: PolymarketClient) -> StatsOverviewDict:
             )
         )
 
-    # Get tags for category distribution
+    # Get tags for category distribution (returns a list directly)
     tags_response = await client._get(GAMMA_BASE, "/tags")
-    tags = tags_response.get("tags", [])
+    tags = tags_response if isinstance(tags_response, list) else tags_response.get("tags", [])
 
     # Build top categories sorted by volume
     categories: list[CategoryItem] = []
