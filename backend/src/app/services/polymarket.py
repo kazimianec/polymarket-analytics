@@ -140,7 +140,7 @@ class PolymarketClient:
                 "ascending": "false",
             },
         )
-        return response.get("markets", [])
+        return response if isinstance(response, list) else response.get("markets", [])
 
     async def get_market_history(
         self, condition_id: str, interval: str = "1d", fidelity: int = 50
