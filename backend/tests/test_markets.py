@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.services import markets as markets_service
+from app.services.polymarket import PolymarketClient
 
 
 class TestTrendingMarketsReturnsPaginatedMarkets:
@@ -12,7 +13,6 @@ class TestTrendingMarketsReturnsPaginatedMarkets:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture
@@ -126,7 +126,6 @@ class TestMarketDetailReturnsFullInfo:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture
@@ -182,7 +181,10 @@ class TestMarketDetailReturnsFullInfo:
             # Verify values
             assert result.id == "test-market-123"
             assert result.question == "Will BTC reach 100k by end of 2024?"
-            assert result.description == "This market resolves to Yes if BTC reaches $100,000 USD on any major exchange before Dec 31, 2024."
+            assert (
+                result.description
+                == "This market resolves to Yes if BTC reaches $100,000 USD on any major exchange before Dec 31, 2024."
+            )
             assert result.yes_price == 0.65
             assert result.no_price == 0.35
             assert result.volume == 5000000.0
@@ -214,7 +216,6 @@ class TestMarketHistoryReturnsTimestampedPrices:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture

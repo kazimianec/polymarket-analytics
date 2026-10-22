@@ -8,7 +8,6 @@ from typing import TypedDict
 
 from app.models.responses.stats import (
     CategoryItem,
-    StatsOverviewResponse,
     TrendingMarketItem,
 )
 from app.services.polymarket import PolymarketClient

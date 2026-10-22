@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.services import stats as stats_service
+from app.services.polymarket import PolymarketClient
 
 
 class TestStatsOverviewReturnsExpectedStructure:
@@ -12,7 +13,6 @@ class TestStatsOverviewReturnsExpectedStructure:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture
