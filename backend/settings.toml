@@ -4,7 +4,7 @@
 # For Make / psql tooling use PG* vars in .env instead (different namespace, no overlap).
 
 [default]
-app_name = "fullstack-template"
+app_name = "polymarket-analytics"
 log_level = "INFO"
 debug = false
 cors_allow_derived_origins = false

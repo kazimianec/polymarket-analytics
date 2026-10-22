@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fullstack-template"
+name = "polymarket-analytics"
 version = "0.2.2"
 description = "Fullstack template backend"
 authors = []

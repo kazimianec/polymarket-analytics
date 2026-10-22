@@ -42,7 +42,7 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["app_name"] == "fullstack-template"
+    assert body["app_name"] == "polymarket-analytics"
     assert body["env"] == "testing"
     assert body["runtime"] in {"local", "container"}
     assert "database" in body["checks"]
