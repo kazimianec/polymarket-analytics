@@ -10,7 +10,7 @@ from app.models.responses.stats import (
     CategoryItem,
     TrendingMarketItem,
 )
-from app.services.polymarket import PolymarketClient
+from app.services.polymarket import PolymarketClient, parse_yes_no_prices
 
 logger = logging.getLogger(__name__)
 
@@ -51,20 +51,7 @@ async def get_stats_overview(client: PolymarketClient) -> StatsOverviewDict:
         total_volume += volume
 
         # Extract yes/no prices from outcomePrices (double-encoded list: ["0.92", "0.08"])
-        outcome_prices = market.get("outcomePrices", [])
-        if isinstance(outcome_prices, str):
-            import json
-
-            try:
-                outcome_prices = json.loads(outcome_prices)
-            except (json.JSONDecodeError, TypeError):
-                outcome_prices = []
-
-        if isinstance(outcome_prices, list) and len(outcome_prices) >= 2:
-            yes_price = float(outcome_prices[0] or 0.5)
-            no_price = float(outcome_prices[1] or 0.5)
-        else:
-            yes_price, no_price = 0.5, 0.5
+        yes_price, no_price = parse_yes_no_prices(market.get("outcomePrices"))
 
         trending_items.append(
             TrendingMarketItem(

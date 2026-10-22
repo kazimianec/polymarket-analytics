@@ -12,7 +12,7 @@ from app.models.responses.market import (
     PricePoint,
     TrendingMarketItem,
 )
-from app.services.polymarket import PolymarketClient
+from app.services.polymarket import PolymarketClient, parse_yes_no_prices
 
 logger = logging.getLogger(__name__)
 
@@ -52,18 +52,7 @@ async def get_trending_markets(
     market_items: list[TrendingMarketItem] = []
     for market in paginated_markets:
         # Extract yes/no prices from outcomePrices
-        outcome_prices = market.get("outcomePrices", {})
-        if isinstance(outcome_prices, str):
-            # Handle double-encoded JSON string
-            import json
-
-            try:
-                outcome_prices = json.loads(outcome_prices)
-            except (json.JSONDecodeError, TypeError):
-                outcome_prices = {}
-
-        yes_price = float(outcome_prices.get("Yes", 0.5) if outcome_prices else 0.5)
-        no_price = float(outcome_prices.get("No", 0.5) if outcome_prices else 0.5)
+        yes_price, no_price = parse_yes_no_prices(market.get("outcomePrices"))
 
         # Get category from tags if available
         category = market.get("category") or None
@@ -114,17 +103,7 @@ async def get_market_detail(
         return None
 
     # Extract yes/no prices from outcomePrices
-    outcome_prices = market.get("outcomePrices", {})
-    if isinstance(outcome_prices, str):
-        import json
-
-        try:
-            outcome_prices = json.loads(outcome_prices)
-        except (json.JSONDecodeError, TypeError):
-            outcome_prices = {}
-
-    yes_price = float(outcome_prices.get("Yes", 0.5) if outcome_prices else 0.5)
-    no_price = float(outcome_prices.get("No", 0.5) if outcome_prices else 0.5)
+    yes_price, no_price = parse_yes_no_prices(market.get("outcomePrices"))
 
     # Get outcomes
     outcomes = market.get("outcomes", ["Yes", "No"])

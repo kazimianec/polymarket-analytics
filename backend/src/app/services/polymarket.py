@@ -27,6 +27,52 @@ class PolymarketHTTPError(Exception):
         self.status_code = status_code
 
 
+def parse_yes_no_prices(outcome_prices: Any) -> tuple[float, float]:
+    """Extract (yes_price, no_price) from a market's ``outcomePrices`` field.
+
+    The Gamma API returns ``outcomePrices`` as a double-encoded JSON *list*
+    (e.g. ``'["0.92", "0.08"]'``) whose entries line up positionally with the
+    ``outcomes`` list (``["Yes", "No"]``). Older responses, and some
+    proxy/cached payloads, use a ``{"Yes": ..., "No": ...}`` mapping instead.
+
+    Both shapes are accepted so callers never have to care which one arrived.
+    Anything unrecognised degrades to a neutral 0.5/0.5 rather than raising.
+
+    Args:
+        outcome_prices: Raw field value - list, dict, JSON string, or None.
+
+    Returns:
+        Tuple of (yes_price, no_price), each in [0.0, 1.0].
+    """
+    if isinstance(outcome_prices, str):
+        try:
+            outcome_prices = json.loads(outcome_prices)
+        except (json.JSONDecodeError, TypeError):
+            return 0.5, 0.5
+
+    if isinstance(outcome_prices, list):
+        if len(outcome_prices) < 2:
+            return 0.5, 0.5
+        yes_raw, no_raw = outcome_prices[0], outcome_prices[1]
+        try:
+            return float(yes_raw if yes_raw is not None else 0.5), float(
+                no_raw if no_raw is not None else 0.5
+            )
+        except (TypeError, ValueError):
+            return 0.5, 0.5
+
+    if isinstance(outcome_prices, dict):
+        try:
+            return (
+                float(outcome_prices.get("Yes", 0.5) or 0.5),
+                float(outcome_prices.get("No", 0.5) or 0.5),
+            )
+        except (TypeError, ValueError):
+            return 0.5, 0.5
+
+    return 0.5, 0.5
+
+
 def _parse_double_encoded(value: Any) -> Any:
     """Parse a double-encoded JSON string field.
 
