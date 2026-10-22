@@ -17,7 +17,7 @@ test("health page shows ok status when API is up", async ({ page }) => {
 test("health page shows app name", async ({ page }) => {
   await page.goto("/health");
 
-  await expect(page.getByText("fullstack-template")).toBeVisible();
+  await expect(page.getByText("polymarket-analytics")).toBeVisible();
 });
 
 test("health page shows env badge", async ({ page }) => {

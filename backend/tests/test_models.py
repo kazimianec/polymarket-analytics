@@ -8,7 +8,7 @@ def test_health_response_valid() -> None:
     """HealthResponse should accept all required fields."""
     model = HealthResponse(
         status="ok",
-        app_name="fullstack-template",
+        app_name="polymarket-analytics",
         env="testing",
         runtime="local",
         checks={"database": CheckResult(status="ok")},

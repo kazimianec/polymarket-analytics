@@ -27,6 +27,13 @@ frontend/playwright-report/
 frontend/test-results/
 *.tsbuildinfo
 
+# Compiled JS emitted next to the TS sources.
+# The frontend build script is "tsc && vite build"; tsc had no noEmit/outDir,
+# so a plain build dropped a .js copy of every .ts/.tsx file into src/.
+# tsconfig.json now sets "noEmit": true - this is a second line of defence.
+frontend/src/**/*.js
+!frontend/src/**/*.d.ts
+
 # Env
 .env
 .env.local
