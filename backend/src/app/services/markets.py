@@ -11,7 +11,6 @@ from app.models.responses.market import (
     MarketHistoryResponse,
     PricePoint,
     TrendingMarketItem,
-    TrendingMarketsResponse,
 )
 from app.services.polymarket import PolymarketClient
 
@@ -96,7 +95,9 @@ async def get_trending_markets(
     )
 
 
-async def get_market_detail(client: PolymarketClient, market_id: str) -> MarketDetailResponse | None:
+async def get_market_detail(
+    client: PolymarketClient, market_id: str
+) -> MarketDetailResponse | None:
     """Get detailed information for a single market.
 
     Fetches market details from Polymarket Gamma API by market ID.

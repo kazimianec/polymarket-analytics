@@ -8,8 +8,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.models.responses.stats import StatsOverviewResponse
-from app.services.polymarket import PolymarketClient
 from app.services import stats as stats_service
+from app.services.polymarket import PolymarketClient
 
 router = APIRouter(tags=["stats"])
 

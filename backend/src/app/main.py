@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_cors_origins
 from app.database import dispose_engine
+from app.routers.domain.categories import router as categories_router
 from app.routers.domain.health import router as health_router
 from app.routers.domain.markets import router as markets_router
 from app.routers.domain.stats import router as stats_router
-from app.routers.domain.categories import router as categories_router
 
 
 @asynccontextmanager

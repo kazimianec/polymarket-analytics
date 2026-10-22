@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.services import categories as categories_service
+from app.services.polymarket import PolymarketClient
 
 
 class TestCategoryListReturnsCategories:
@@ -12,7 +13,6 @@ class TestCategoryListReturnsCategories:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture
@@ -106,7 +106,6 @@ class TestCategoryMarketsFiltersCorrectly:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture

@@ -185,9 +185,7 @@ class PolymarketClient:
             return None
         return _parse_event_fields(events[0])
 
-    async def get_recent_trades(
-        self, condition_id: str, limit: int = 50
-    ) -> list[dict]:
+    async def get_recent_trades(self, condition_id: str, limit: int = 50) -> list[dict]:
         """Get recent trades for a market from Data API.
 
         Args:
