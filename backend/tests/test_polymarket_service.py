@@ -1,6 +1,5 @@
 """Tests for Polymarket API client service."""
 
-import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -52,9 +51,7 @@ class TestSearchMarkets:
             assert event["clobTokenIds"] == ["token-abc", "token-def"]
 
     @pytest.mark.asyncio
-    async def test_search_markets_calls_correct_endpoint(
-        self, client: PolymarketClient
-    ) -> None:
+    async def test_search_markets_calls_correct_endpoint(self, client: PolymarketClient) -> None:
         """Verify search_markets hits the Gamma API public-search endpoint."""
         with patch.object(client, "_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"events": []}
@@ -163,9 +160,7 @@ class TestGetTrendingMarkets:
         return PolymarketClient()
 
     @pytest.mark.asyncio
-    async def test_get_trending_markets_returns_market_list(
-        self, client: PolymarketClient
-    ) -> None:
+    async def test_get_trending_markets_returns_market_list(self, client: PolymarketClient) -> None:
         """Verify get_trending_markets returns list of markets sorted by volume."""
         mock_response_data = {
             "markets": [
@@ -201,9 +196,7 @@ class TestGetMarketDetail:
         return PolymarketClient()
 
     @pytest.mark.asyncio
-    async def test_get_market_detail_returns_market(
-        self, client: PolymarketClient
-    ) -> None:
+    async def test_get_market_detail_returns_market(self, client: PolymarketClient) -> None:
         """Verify get_market_detail returns single market by ID."""
         mock_response_data = {
             "events": [
@@ -225,9 +218,7 @@ class TestGetMarketDetail:
             assert isinstance(result["outcomes"], list)
 
     @pytest.mark.asyncio
-    async def test_get_market_detail_returns_none_for_empty(
-        self, client: PolymarketClient
-    ) -> None:
+    async def test_get_market_detail_returns_none_for_empty(self, client: PolymarketClient) -> None:
         """Verify get_market_detail returns None when market not found."""
         with patch.object(client, "_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"events": []}

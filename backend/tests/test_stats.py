@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.services import stats as stats_service
+from app.services.polymarket import PolymarketClient
 
 
 class TestStatsOverviewReturnsExpectedStructure:
@@ -12,7 +13,6 @@ class TestStatsOverviewReturnsExpectedStructure:
 
     @pytest.fixture
     def client(self) -> "PolymarketClient":
-        from app.services.polymarket import PolymarketClient
         return PolymarketClient()
 
     @pytest.fixture
@@ -23,13 +23,13 @@ class TestStatsOverviewReturnsExpectedStructure:
                 "id": "market-1",
                 "question": "Will BTC reach 100k?",
                 "volume": 5000000,
-                "outcomePrices": {"Yes": "0.60", "No": "0.40"},
+                "outcomePrices": ["0.60", "0.40"],
             },
             {
                 "id": "market-2",
                 "question": "Will ETH hit 5k?",
                 "volume": 3000000,
-                "outcomePrices": {"Yes": "0.45", "No": "0.55"},
+                "outcomePrices": ["0.45", "0.55"],
             },
         ]
 
@@ -126,3 +126,59 @@ class TestStatsOverviewReturnsExpectedStructure:
             first_market = result["trending_markets"][0]
             assert first_market.yes_price == 0.60
             assert first_market.no_price == 0.40
+
+    @pytest.mark.asyncio
+    async def test_stats_overview_accepts_legacy_dict_outcome_prices(
+        self,
+        client: "PolymarketClient",
+        mock_tags_response: dict,
+    ) -> None:
+        """Older/cached payloads use a Yes/No mapping - still parsed correctly."""
+        legacy_markets = [
+            {
+                "id": "market-legacy",
+                "question": "Will it rain?",
+                "volume": 1000,
+                "outcomePrices": {"Yes": "0.70", "No": "0.30"},
+            }
+        ]
+        with (
+            patch.object(client, "get_trending_markets", new_callable=AsyncMock) as mock_trending,
+            patch.object(client, "_get", new_callable=AsyncMock) as mock_get,
+        ):
+            mock_trending.return_value = legacy_markets
+            mock_get.return_value = mock_tags_response
+
+            result = await stats_service.get_stats_overview(client)
+
+            market = result["trending_markets"][0]
+            assert market.yes_price == 0.70
+            assert market.no_price == 0.30
+
+    @pytest.mark.asyncio
+    async def test_stats_overview_tolerates_malformed_outcome_prices(
+        self,
+        client: "PolymarketClient",
+        mock_tags_response: dict,
+    ) -> None:
+        """Malformed outcomePrices degrade to neutral 0.5/0.5 instead of raising."""
+        broken_markets = [
+            {
+                "id": "market-broken",
+                "question": "Will it snow?",
+                "volume": 1000,
+                "outcomePrices": "not-json",
+            }
+        ]
+        with (
+            patch.object(client, "get_trending_markets", new_callable=AsyncMock) as mock_trending,
+            patch.object(client, "_get", new_callable=AsyncMock) as mock_get,
+        ):
+            mock_trending.return_value = broken_markets
+            mock_get.return_value = mock_tags_response
+
+            result = await stats_service.get_stats_overview(client)
+
+            market = result["trending_markets"][0]
+            assert market.yes_price == 0.5
+            assert market.no_price == 0.5

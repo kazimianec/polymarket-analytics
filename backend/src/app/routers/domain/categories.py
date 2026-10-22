@@ -9,8 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.models.responses.category import CategoryListResponse
 from app.models.responses.market import TrendingMarketsResponse
-from app.services.polymarket import PolymarketClient
 from app.services import categories as categories_service
+from app.services.polymarket import PolymarketClient
 
 router = APIRouter(tags=["categories"])
 

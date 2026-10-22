@@ -12,8 +12,8 @@ from app.models.responses.market import (
     MarketHistoryResponse,
     TrendingMarketsResponse,
 )
-from app.services.polymarket import PolymarketClient
 from app.services import markets as markets_service
+from app.services.polymarket import PolymarketClient
 
 router = APIRouter(tags=["markets"])
 

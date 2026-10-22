@@ -6,8 +6,8 @@ Business logic for fetching and aggregating category data from Polymarket APIs.
 import logging
 from typing import TypedDict
 
-from app.models.responses.category import CategoryItem, CategoryListResponse
-from app.models.responses.market import TrendingMarketItem, TrendingMarketsResponse
+from app.models.responses.category import CategoryItem
+from app.models.responses.market import TrendingMarketItem
 from app.services.polymarket import PolymarketClient
 
 logger = logging.getLogger(__name__)
@@ -84,10 +84,7 @@ async def get_markets_by_category(
     all_markets = await client.get_trending_markets(limit=100)
 
     # Filter by category slug
-    filtered_markets = [
-        market for market in all_markets
-        if market.get("category") == slug
-    ]
+    filtered_markets = [market for market in all_markets if market.get("category") == slug]
 
     # Apply pagination
     total = len(filtered_markets)
