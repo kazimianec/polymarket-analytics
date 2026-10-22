@@ -25,7 +25,7 @@ class TestTrendingMarketsReturnsPaginatedMarkets:
             {
                 "id": "market-1",
                 "question": "Will BTC reach 100k by end of 2024?",
-                "outcomePrices": {"Yes": "0.65", "No": "0.35"},
+                "outcomePrices": ["0.65", "0.35"],
                 "volume": 5000000.0,
                 "liquidity": 1000000.0,
                 "category": "crypto",
@@ -36,7 +36,7 @@ class TestTrendingMarketsReturnsPaginatedMarkets:
             {
                 "id": "market-2",
                 "question": "Will ETH surpass 5k in 2024?",
-                "outcomePrices": {"Yes": "0.45", "No": "0.55"},
+                "outcomePrices": ["0.45", "0.55"],
                 "volume": 3000000.0,
                 "liquidity": 800000.0,
                 "category": "crypto",
@@ -89,6 +89,52 @@ class TestTrendingMarketsReturnsPaginatedMarkets:
             assert market.closed is False
 
     @pytest.mark.asyncio
+    async def test_trending_accepts_legacy_dict_outcome_prices(
+        self,
+        client: "PolymarketClient",
+    ) -> None:
+        """Older/cached payloads use a Yes/No mapping - still parsed correctly."""
+        legacy = [
+            {
+                "id": "market-legacy",
+                "question": "Will it rain?",
+                "volume": 1000.0,
+                "outcomePrices": {"Yes": "0.70", "No": "0.30"},
+            }
+        ]
+        with patch.object(client, "get_trending_markets", new_callable=AsyncMock) as mock_trending:
+            mock_trending.return_value = legacy
+
+            result = await markets_service.get_trending_markets(client, limit=20, offset=0)
+
+            market = result["markets"][0]
+            assert market.yes_price == 0.70
+            assert market.no_price == 0.30
+
+    @pytest.mark.asyncio
+    async def test_trending_tolerates_malformed_outcome_prices(
+        self,
+        client: "PolymarketClient",
+    ) -> None:
+        """Malformed outcomePrices degrade to neutral 0.5/0.5 instead of raising."""
+        broken = [
+            {
+                "id": "market-broken",
+                "question": "Will it snow?",
+                "volume": 1000.0,
+                "outcomePrices": "not-json",
+            }
+        ]
+        with patch.object(client, "get_trending_markets", new_callable=AsyncMock) as mock_trending:
+            mock_trending.return_value = broken
+
+            result = await markets_service.get_trending_markets(client, limit=20, offset=0)
+
+            market = result["markets"][0]
+            assert market.yes_price == 0.5
+            assert market.no_price == 0.5
+
+    @pytest.mark.asyncio
     async def test_trending_pagination_calculates_has_more(
         self,
         client: "PolymarketClient",
@@ -138,7 +184,7 @@ class TestMarketDetailReturnsFullInfo:
             "id": "test-market-123",
             "question": "Will BTC reach 100k by end of 2024?",
             "description": "This market resolves to Yes if BTC reaches $100,000 USD on any major exchange before Dec 31, 2024.",
-            "outcomePrices": {"Yes": "0.65", "No": "0.35"},
+            "outcomePrices": ["0.65", "0.35"],
             "volume": 5000000.0,
             "liquidity": 1000000.0,
             "category": "crypto",
